@@ -19,15 +19,22 @@ public class KnapsackDP {
     }
 
     public void solve() {
-        for (int i = 1; i <= n; i++) {
+        for (int i = 0; i <= n; i++) {
             for (int w = 0; w <= W; w++) {
+                if(i == 0 || w == 0) {
+                    dp[i][w] = 0;
+                    dt[i][w] = 0; 
+                    continue;
+                }
+
+                int p = dp[i - 1][w];
+                tableReferences++;
                 if (weights[i - 1] <= w) {
-                    tableReferences += 2; 
-                    dp[i][w] = Math.max(dp[i - 1][w], values[i - 1] + dp[i - 1][w - weights[i - 1]]);
-                    dt[i][w] = (dp[i][w] > dp[i-1][w] ? 1 : 0);
+                    tableReferences++; 
+                    int c = dp[i][w] = Math.max(p, values[i - 1] + dp[i - 1][w - weights[i - 1]]);
+                    dt[i][w] = (c > p ? 1 : 0);
                 } else {
-                    dp[i][w] = dp[i - 1][w];
-                    tableReferences++;
+                    dp[i][w] = p;
                 }
             }
         }
@@ -89,10 +96,24 @@ public class KnapsackDP {
         knapsack.solve();
 
         if (debugLevel == 1) {
-            System.out.println("KnapsackDP-VTable:");
-            printTable(knapsack.dp);
-            System.out.println("KnapsackDP-DTable:");
-            printTable(knapsack.dt);
+            try {
+                File VTable = new File("KnapsackDP-VTable.txt"); 
+                FileWriter myWriter = new FileWriter(VTable);  
+                myWriter.write(printTable(knapsack.dp));
+                myWriter.close(); 
+            } catch (IOException e) {
+                System.out.println("An error occured."); 
+                e.printStackTrace(); 
+            }
+            try {
+                File DTable = new File("KnapsackDP-DTable.txt"); 
+                FileWriter myWriter2 = new FileWriter(DTable); 
+                myWriter2.write(printTable(knapsack.dt)); 
+                myWriter2.close();  
+            } catch (IOException e) {
+                System.out.println("An error occured."); 
+                e.printStackTrace();
+            }
         }
         ArrayList<Integer> optimalItems = knapsack.getOptimalItems(); 
         System.out.println("Optimal solution: ");
@@ -106,12 +127,14 @@ public class KnapsackDP {
      * Prints either the optimal solution table or the decision table 
      * @param table
      */
-    private static void printTable(int[][] table) {
-        for (int[] row : table) {
-            for (int value : row) {
-                System.out.printf("%" + 4 + "d ", value);
+    private static String printTable(int[][] table) {
+        StringBuilder sb = new StringBuilder(); 
+        for (int i = 1; i < table.length; i++) {
+            for (int j = 1; j < table[i].length; j++) {
+                sb.append(table[i][j]).append(" "); 
             }
-            System.out.println();
+            sb.append("\n"); 
         }
+        return sb.toString(); 
     }
 }
